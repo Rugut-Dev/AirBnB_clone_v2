@@ -114,40 +114,38 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def do_create(self, args):
-        """ Create an object of any class"""
+        """Create an object of any class"""
         if not args:
             print("** class name missing **")
             return
-        params_dict = {}
-        if ('=' in args and ' ' in args):
-            args = args.partition(' ')
-            class_name = args[0]
-            params = args[2].split(' ')
+        class_name, *params = args.split(' ')
 
-            for item in params:
-                param_key, param_value = tuple(item.split('='))
-                if param_value[0] == '"':
-                    param_value = param_value.strip('"').replace("_", " ")
-                else:
-                    try:
-                        param_value = eval(param_value)
-                    except (SyntaxError, NameError):
-                        continue
-                params_dict[param_key] = param_value
+        if '=' in args and len(params) > 0:
+            params_dict = {}
+            for param in params:
+                key, value = param.split('=')
+                value = value.strip('"').replace('_', ' ')
+                try:
+                    value = eval(value)
+                except (SyntaxError, NameError):
+                    pass
+                params_dict[key] = value
         else:
-            class_name = args
+            params_dict = {}
 
         if class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-
+        
         new_instance = HBNBCommand.classes[class_name]()
         storage.save()
         print(new_instance.id)
-        if len(params_dict) > 0:
+
+        if params_dict:
             args = f"{class_name} {new_instance.id} {params_dict}"
             self.do_update(args)
-        storage.save()
+            storage.save()
+
 
     def help_create(self):
         """ Help information for the create method """
